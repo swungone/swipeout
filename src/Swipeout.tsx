@@ -46,6 +46,7 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
     super(props);
     this.state = {
       swiping: false,
+      open: null
     };
     this.openedLeft = false;
     this.openedRight = false;
@@ -54,6 +55,14 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
   componentDidMount() {
     this.btnsLeftWidth = this.left ? this.left.offsetWidth : 0;
     this.btnsRightWidth = this.right ? this.right.offsetWidth : 0;
+    const { open, disabled } = this.props
+    if(typeof(open) !== 'undefined'){
+      this.setState({
+        open,
+        disabled:true,
+        ready:true
+      })
+    }
     document.body.addEventListener('touchstart', this.onCloseSwipe, true);
   }
 
@@ -68,7 +77,26 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
     const pNode = closest(ev.target, `.${this.props.prefixCls}-actions`);
     if (!pNode) {
       ev.preventDefault();
-      this.close();
+      this.needAutoClose();
+    }
+  }
+
+  static getDerivedStateFromProps (props, state) {
+    // 当用户不设置open时 open为undefined
+    console.log(props, state)
+    if(props.open === true && (state.open === false || state.open === null)){
+      state.open = true
+    }
+    if(props.open === false && state.open === true){
+      state.open = false
+    }
+    return state
+  }
+
+  needAutoClose = () => {
+    const { open } = this.props
+    if(typeof(open) === 'undefined') {
+      this.close()
     }
   }
 
@@ -82,7 +110,7 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
     if (!isLeft && !isRight) {
       return;
     }
-    const { left, right } = this.props;
+    const { left, right, open } = this.props;
     this.needShowRight = isLeft && right!.length > 0;
     this.needShowLeft = isRight && left!.length > 0;
     if (this.left) {
@@ -153,7 +181,7 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
       onPress(ev);
     }
     if (this.props.autoClose) {
-      this.close();
+      this.needAutoClose();
     }
   }
 
@@ -201,10 +229,10 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
 
   renderButtons(buttons, ref) {
     const prefixCls = this.props.prefixCls;
-
     return (buttons && buttons.length) ? (
       <div
         className={`${prefixCls}-actions ${prefixCls}-actions-${ref}`}
+        style={{ height:'inherit' }}
         ref={(el) => this[ref] = el}
       >
         {
@@ -230,7 +258,15 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
   }
 
   render() {
-    const { prefixCls, left, right, disabled, children, ...restProps } = this.props;
+    const { prefixCls, left, right, children, ...restProps } = this.props;
+
+    const { open: openState, ready, disabled } = this.state
+    if(openState === true && ready){
+      this.doOpenRight()
+    }
+    if(openState === false && ready){
+      this.close()
+    }
 
     const { autoClose, onOpen, onClose, ...divProps } = restProps;
 
@@ -263,7 +299,11 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
         </Gesture>
      </div>
     ) : (
-      <div {...refProps} {...divProps}>{children}</div>
+      <div style={{ position: 'relative' }}>
+        { this.renderButtons(left, 'left') }
+        { this.renderButtons(right, 'right') }
+        <div className={`${prefixCls}-content`} {...refProps} {...divProps}>{children}</div>
+      </div>
     );
   }
 }
