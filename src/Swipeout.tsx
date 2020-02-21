@@ -56,10 +56,16 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
     this.btnsLeftWidth = this.left ? this.left.offsetWidth : 0;
     this.btnsRightWidth = this.right ? this.right.offsetWidth : 0;
     const { open, disabled } = this.props
-    if(typeof(open) !== 'undefined'){
+    if(typeof(open) !== 'undefined' && disabled === false){
       this.setState({
         open,
         disabled:true,
+        ready:true
+      })
+    } else if ( disabled === true ) {
+      this.setState({
+        open:false,
+        disabled,
         ready:true
       })
     }
@@ -210,7 +216,7 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
 
   open = (value, openedLeft, openedRight) => {
     if (!this.openedLeft && !this.openedRight && this.props.onOpen) {
-      this.props.onOpen();
+      this.props.onOpen(true);
     }
 
     this.openedLeft = openedLeft;
@@ -220,7 +226,7 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
 
   close = () => {
     if ((this.openedLeft || this.openedRight) && this.props.onClose) {
-      this.props.onClose();
+      this.props.onClose(false);
     }
     this._setStyle(0);
     this.openedLeft = false;
