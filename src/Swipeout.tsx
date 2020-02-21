@@ -89,7 +89,6 @@ export default class Swipeout extends React.Component <SwipeoutPropType, any> {
 
   static getDerivedStateFromProps (props, state) {
     // 当用户不设置open时 open为undefined
-    console.log(props, state)
     if(props.open === true && (state.open === false || state.open === null)){
       state.open = true
     }
